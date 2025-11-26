@@ -11,6 +11,11 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    // Azure OpenAI Configuration
+    AZURE_OPENAI_API_KEY: z.string().min(1),
+    AZURE_OPENAI_ENDPOINT: z.string().url(),
+    AZURE_OPENAI_DEPLOYMENT_NAME: z.string().min(1),
+    AZURE_OPENAI_API_VERSION: z.string().default("2024-02-15-preview"),
   },
 
   /**
@@ -29,6 +34,10 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
+    AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY,
+    AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT,
+    AZURE_OPENAI_DEPLOYMENT_NAME: process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
+    AZURE_OPENAI_API_VERSION: process.env.AZURE_OPENAI_API_VERSION,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
