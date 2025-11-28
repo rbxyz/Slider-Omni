@@ -7,3 +7,4 @@ UPDATE "slider-omni_user" SET "email" = "username" WHERE "email" = '';
 -- Make email NOT NULL without default (after updating existing rows)
 ALTER TABLE "slider-omni_user" ALTER COLUMN "email" DROP DEFAULT;
 
+
