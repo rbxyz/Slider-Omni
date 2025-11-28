@@ -89,9 +89,36 @@ Slide ${idx + 1}:
     )
     .join("\n")
 
+  // Gerar HTML base
+  const baseHTML = await generateBaseHTML(slides, topic, model)
+
+  // Injetar script de controle e navegação
+  const enhancedHTML = injectNavigationController(baseHTML, slides.length)
+
+  return enhancedHTML
+}
+
+// Função para gerar o HTML base sem preocupação com navegação
+async function generateBaseHTML(
+  slides: SlideContent[],
+  topic: string,
+  model: any,
+): Promise<string> {
+  const slidesDescription = slides
+    .map(
+      (slide, idx) => `
+Slide ${idx + 1}:
+  Título: ${slide.title}
+  Conteúdo: ${slide.content.join(" | ")}
+`,
+    )
+    .join("\n")
+
   const { text } = await generateText({
     model,
     prompt: `Você é um designer especialista em HTML/CSS moderno.
+
+IMPORTANTE: NÃO gere nenhum componente de navegação, botões de próximo/anterior, ou controles de slide. Esses serão injetados automaticamente.
 
 Crie um documento HTML5 ÚNICO e COMPLETO para uma apresentação sobre: "${topic}"
 
@@ -186,6 +213,74 @@ Exemplo de estrutura esperada:
   }
 
   return html
+}
+
+// Função para injetar o controlador de navegação no HTML
+function injectNavigationController(html: string, totalSlides: number): string {
+  // Remover body closing tag
+  const bodyCloseIndex = html.toLowerCase().lastIndexOf("</body>")
+  if (bodyCloseIndex === -1) {
+    console.error("❌ Não encontrado </body> no HTML")
+    return html
+  }
+
+  // Controlador de slides injetado
+  const controllerScript = `
+    <script>
+      window.currentSlide = 1;
+      window.totalSlides = ${totalSlides};
+      
+      window.showSlide = function(slideNumber) {
+        if (slideNumber < 1 || slideNumber > window.totalSlides) return;
+        
+        window.currentSlide = slideNumber;
+        const allSlides = document.querySelectorAll('[id^="slide"]');
+        
+        allSlides.forEach((slide, index) => {
+          const num = index + 1;
+          if (num === slideNumber) {
+            slide.style.display = 'flex';
+            slide.style.visibility = 'visible';
+            slide.style.opacity = '1';
+            slide.style.zIndex = '10';
+            slide.classList.add('active');
+          } else {
+            slide.style.display = 'none';
+            slide.style.visibility = 'hidden';
+            slide.style.opacity = '0';
+            slide.style.zIndex = '1';
+            slide.classList.remove('active');
+          }
+        });
+        
+        // Notificar parent window
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'slideChange', slide: slideNumber }, '*');
+        }
+      };
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' && window.currentSlide < window.totalSlides) {
+          window.showSlide(window.currentSlide + 1);
+        } else if (e.key === 'ArrowLeft' && window.currentSlide > 1) {
+          window.showSlide(window.currentSlide - 1);
+        }
+      });
+      
+      // Inicializar no primeiro slide
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => window.showSlide(1));
+      } else {
+        window.showSlide(1);
+      }
+    </script>
+  `
+
+  // Injetar antes do </body>
+  const enhancedHtml = html.slice(0, bodyCloseIndex) + controllerScript + html.slice(bodyCloseIndex)
+
+  return enhancedHtml
 }
 
 export async function POST(request: Request) {

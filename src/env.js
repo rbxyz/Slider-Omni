@@ -11,11 +11,11 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    // Azure OpenAI Configuration
-    AZURE_OPENAI_API_KEY: z.string().min(1),
-    AZURE_OPENAI_ENDPOINT: z.string().url(),
-    AZURE_OPENAI_DEPLOYMENT_NAME: z.string().min(1),
-    AZURE_OPENAI_API_VERSION: z.string().default("2024-02-15-preview"),
+    // Azure OpenAI Configuration (opcional, usado apenas para migrações manuais)
+    AZURE_OPENAI_API_KEY: z.string().optional(),
+    AZURE_OPENAI_ENDPOINT: z.string().url().optional(),
+    AZURE_OPENAI_DEPLOYMENT_NAME: z.string().optional(),
+    AZURE_OPENAI_API_VERSION: z.string().default("2024-02-15-preview").optional(),
   },
 
   /**
