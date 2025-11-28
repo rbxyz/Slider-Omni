@@ -91,6 +91,7 @@ export const presentations = createTable(
   "presentation",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey(),
+    userId: d.integer().references(() => users.id, { onDelete: "cascade" }),
     title: d.varchar({ length: 256 }),
     description: d.text(),
     html: d.text(),
@@ -102,5 +103,8 @@ export const presentations = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("presentation_created_idx").on(t.createdAt)],
+  (t) => [
+    index("presentation_created_idx").on(t.createdAt),
+    index("presentation_user_idx").on(t.userId),
+  ],
 )

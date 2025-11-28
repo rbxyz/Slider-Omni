@@ -1,0 +1,3 @@
+ALTER TABLE "slider-omni_presentation" ADD COLUMN "userId" integer;--> statement-breakpoint
+ALTER TABLE "slider-omni_presentation" ADD CONSTRAINT "slider-omni_presentation_userId_slider-omni_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."slider-omni_user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "presentation_user_idx" ON "slider-omni_presentation" USING btree ("userId");

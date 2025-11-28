@@ -234,6 +234,27 @@ export async function getUserSafe(username: string, forceFromDB = false) {
   return null
 }
 
+export async function getUserIdByUsername(username: string): Promise<number | null> {
+  try {
+    const conn = postgres(env.DATABASE_URL)
+    const result = await conn`
+      SELECT id
+      FROM "slider-omni_user"
+      WHERE username = ${username}
+      LIMIT 1
+    `
+    await conn.end()
+    
+    if (result && result.length > 0) {
+      const row = result[0] as { id: number }
+      return row.id
+    }
+  } catch (e) {
+    console.error("Error getting userId by username:", e)
+  }
+  return null
+}
+
 export async function listUsers() {
   try {
     const rows = await db.query.users.findMany()
