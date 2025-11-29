@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     // Verificar autenticação
     const auth = request.headers.get("authorization") || ""
     const m = auth.match(/^Bearer\s+(.+)$/i)
-    if (!m) {
+    if (!m || !m[1]) {
       return Response.json({ error: "authentication required" }, { status: 401 })
     }
 

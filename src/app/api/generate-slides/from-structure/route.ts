@@ -288,7 +288,7 @@ export async function POST(request: Request) {
     // Verificar autenticação
     const auth = request.headers.get("authorization") || ""
     const m = auth.match(/^Bearer\s+(.+)$/i)
-    if (!m) return Response.json({ error: "authentication required" }, { status: 401 })
+    if (!m || !m[1]) return Response.json({ error: "authentication required" }, { status: 401 })
 
     const token = m[1]
     let payload: any
