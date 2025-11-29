@@ -14,7 +14,7 @@
 
         // If presentation was stored as `slides` array, convert to combined HTML
         if (Array.isArray(presentation.slides) && presentation.slides.length > 0) {
-          const generatedSlides = presentation.slides as Array<any>
+          const generatedSlides = presentation.slides
 
           const baseStyles = `
             :root{--bg:#0b1020;--fg:#e6eef8;--accent:#7c5cff}
@@ -38,8 +38,8 @@
           }
 
           const slidesHtml = generatedSlides
-            .map((s: any, i: number) => {
-              const inner = extractBody(String(s.htmlContent ?? s.html ?? ""))
+            .map((s, i: number) => {
+              const inner = extractBody(String(s.htmlContent ?? ""))
               return `
                 <div id="slide${i + 1}" class="slide" data-order="${i + 1}">
                   <div class="card">
@@ -89,6 +89,7 @@
             description: presentation.description,
             html: combinedHtml,
             slideCount: generatedSlides.length,
+            slides: generatedSlides,
             createdAt: presentation.createdAt,
           }
 
