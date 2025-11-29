@@ -139,17 +139,31 @@ export default function PainelPage() {
   const handleAzureSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setStatus("")
+    
+    // Validar que os campos obrigatórios não estão vazios
+    if (!azureState.apiKey || !azureState.endpoint || !azureState.deploymentName) {
+      setStatus("Por favor, preencha todos os campos obrigatórios.")
+      return
+    }
+    
     await upsertAzure.mutateAsync({
       apiKey: azureState.apiKey,
       endpoint: azureState.endpoint,
       deploymentName: azureState.deploymentName,
-      apiVersion: azureState.apiVersion,
+      apiVersion: azureState.apiVersion || "2024-02-15-preview",
     })
   }
 
   const handleOpenRouterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setStatus("")
+    
+    // Validar que os campos obrigatórios não estão vazios
+    if (!openRouterState.apiKey || !openRouterState.model) {
+      setStatus("Por favor, preencha todos os campos obrigatórios.")
+      return
+    }
+    
     await upsertOpenRouter.mutateAsync({
       apiKey: openRouterState.apiKey,
       baseUrl: openRouterState.baseUrl,
