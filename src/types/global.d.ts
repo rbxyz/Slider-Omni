@@ -5,6 +5,8 @@ declare global {
       id: string
       title: string
       description?: string
+      html?: string
+      slideCount?: number
       slides: Array<{
         id: string
         title: string
