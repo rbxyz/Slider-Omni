@@ -32,6 +32,11 @@ export function verifyJwt(token: string) {
     const parts = token.split(".")
     if (parts.length !== 3) throw new Error("Invalid token format")
     const [headerB64, bodyB64, sigB64] = parts
+    
+    if (!headerB64 || !bodyB64 || !sigB64) {
+      throw new Error("Invalid token format")
+    }
+    
     const data = `${headerB64}.${bodyB64}`
 
     const expectedSig = crypto.createHmac("sha256", SECRET).update(data).digest()
