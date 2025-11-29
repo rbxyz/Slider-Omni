@@ -250,14 +250,33 @@ export async function POST(request: Request) {
       if (!globalThis.presentations) {
         globalThis.presentations = new Map()
       }
+      
+      // Transformar slidesContent para o formato esperado
+      const formattedSlides = slidesContent.map((slide, idx) => {
+        // Gerar HTML básico para cada slide
+        const htmlContent = `
+          <div class="card">
+            <h1>${slide.title}</h1>
+            <ul>
+              ${slide.content.map(item => `<li>${item}</li>`).join("")}
+            </ul>
+            ${slide.notes ? `<p><em>${slide.notes}</em></p>` : ""}
+          </div>
+        `
+        return {
+          id: `slide${idx + 1}`,
+          title: slide.title,
+          htmlContent,
+          order: idx + 1,
+        }
+      })
+      
       globalThis.presentations.set(presentationId, {
         id: presentationId,
         title: topic,
         description: description || "",
-        html: presentationHTML,
-        slides: slidesContent,
-        slideCount: slidesContent.length,
-        createdAt: new Date().toISOString(),
+        slides: formattedSlides,
+        createdAt: new Date(),
       })
     }
 
