@@ -297,6 +297,8 @@ export async function POST(request: Request) {
         id: presentationId,
         title: topic,
         description: description || "",
+        html: presentationHTML,
+        slideCount: slidesContent.length,
         slides: slidesContent.map((slide, idx) => ({
           id: `slide${idx + 1}`,
           title: slide.title,

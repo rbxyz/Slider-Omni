@@ -275,6 +275,8 @@ export async function POST(request: Request) {
         id: presentationId,
         title: topic,
         description: description || "",
+        html: presentationHTML,
+        slideCount: slidesContent.length,
         slides: formattedSlides,
         createdAt: new Date(),
       })
