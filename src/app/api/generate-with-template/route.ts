@@ -16,9 +16,18 @@ import {
 const requestSchema = z.object({
   topic: z.string().min(1),
   description: z.string().optional(),
-  slideCount: z.number().min(3).max(15),
+  slideCount: z.number().min(3).max(15).optional(),
   templateId: z.string().default("dark-premium"),
-  mixLayouts: z.boolean().default(true),
+  mixLayouts: z.boolean().default(false).optional(),
+  slides: z
+    .array(
+      z.object({
+        title: z.string(),
+        content: z.array(z.string()),
+        notes: z.string().optional(),
+      }),
+    )
+    .optional(),
 })
 
 interface SlideContent {
@@ -219,7 +228,8 @@ export async function POST(request: Request) {
 
     // Validar input
     const body = await request.json()
-    const { topic, description, slideCount, templateId, mixLayouts } = requestSchema.parse(body)
+    const { topic, description, slideCount, templateId, mixLayouts = false, slides } =
+      requestSchema.parse(body)
 
     // Buscar template
     const template = ALL_TEMPLATES.find((t) => t.id === templateId)
@@ -227,31 +237,48 @@ export async function POST(request: Request) {
       return Response.json({ error: `Template "${templateId}" não encontrado` }, { status: 400 })
     }
 
-    // Buscar provedor LLM
-    const activeProvider = await fetchActiveLlmProvider()
-    if (!activeProvider) {
-      return Response.json(
-        { error: "Nenhum provedor LLM ativo encontrado. Configure no painel." },
-        { status: 400 },
+    let slidesContent: SlideContent[]
+
+    // Se slides foram fornecidos (editados), usar eles; senão, gerar
+    if (slides && slides.length > 0) {
+      slidesContent = slides
+      console.log(`✅ Usando ${slidesContent.length} slides fornecidos`)
+    } else {
+      // Buscar provedor LLM
+      const activeProvider = await fetchActiveLlmProvider()
+      if (!activeProvider) {
+        return Response.json(
+          { error: "Nenhum provedor LLM ativo encontrado. Configure no painel." },
+          { status: 400 },
+        )
+      }
+
+      const model = createModelFromProvider(activeProvider)
+
+      if (!slideCount) {
+        return Response.json(
+          { error: "slideCount é obrigatório quando slides não são fornecidos" },
+          { status: 400 },
+        )
+      }
+
+      console.log("🚀 Iniciando geração de conteúdo dos slides...")
+      console.log(`📝 Tema: ${topic}`)
+      console.log(`📊 Slides: ${slideCount}`)
+
+      // Gerar conteúdo dos slides
+      slidesContent = await generateAllSlidesContent(
+        topic,
+        description || "",
+        slideCount,
+        model,
       )
+      console.log(`✅ ${slidesContent.length} slides de conteúdo gerados`)
     }
 
-    const model = createModelFromProvider(activeProvider)
-
     console.log("🚀 Iniciando geração de apresentação com template...")
-    console.log(`📝 Tema: ${topic}`)
-    console.log(`📊 Slides: ${slideCount}`)
     console.log(`🎨 Template: ${template.name}`)
     console.log(`🔀 Mix Layouts: ${mixLayouts}`)
-
-    // Gerar conteúdo dos slides
-    const slidesContent = await generateAllSlidesContent(
-      topic,
-      description || "",
-      slideCount,
-      model,
-    )
-    console.log(`✅ ${slidesContent.length} slides de conteúdo gerados`)
 
     // Gerar HTML com template
     const presentationHTML = generatePresentationWithTemplate(

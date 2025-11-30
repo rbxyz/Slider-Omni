@@ -19,21 +19,10 @@ import {
   FolderOpen,
 } from "lucide-react"
 
-interface Template {
-  id: string
-  name: string
-  description: string
-  theme: string
-  layoutCount: number
-}
 
 export default function Home() {
   const [topic, setTopic] = useState("")
   const [description, setDescription] = useState("")
-  const [slideCount, setSlideCount] = useState(5)
-  const [selectedTemplate, setSelectedTemplate] = useState("dark-premium")
-  const [mixLayouts, setMixLayouts] = useState(true)
-  const [templates, setTemplates] = useState<Template[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<{
@@ -50,22 +39,6 @@ export default function Home() {
     return sudo === true || sudo === "true" || sudo === 1 || sudo === "1"
   }
 
-  // Carregar templates disponíveis
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const res = await fetch("/api/generate-with-template", { method: "GET" })
-        if (res.ok) {
-          const data = await res.json()
-          setTemplates(data.templates)
-        }
-      } catch (err) {
-        console.error("Erro ao carregar templates:", err)
-      }
-    }
-
-    fetchTemplates()
-  }, [])
 
   // Verificar autenticação
   useEffect(() => {
@@ -111,7 +84,7 @@ export default function Home() {
     checkAuth()
   }, [])
 
-  const handleGenerate = async () => {
+  const handleNext = () => {
     if (!topic.trim()) return
     const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
     if (!token) {
@@ -119,34 +92,12 @@ export default function Home() {
       return
     }
 
-    setIsGenerating(true)
-    try {
-      const resp = await fetch("/api/generate-with-template", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          topic,
-          description,
-          slideCount,
-          templateId: selectedTemplate,
-          mixLayouts,
-        }),
-      })
-
-      const data = await resp.json()
-      if (data && data.presentationId) {
-        window.location.href = `/presentations/${data.presentationId}`
-      } else {
-        console.error("Erro ao gerar apresentação", data)
-      }
-    } catch (error) {
-      console.error("Erro:", error)
-    } finally {
-      setIsGenerating(false)
-    }
+    // Redirecionar para o wizard com os dados
+    const params = new URLSearchParams({
+      topic: topic.trim(),
+      ...(description.trim() && { description: description.trim() }),
+    })
+    window.location.href = `/generate?${params.toString()}`
   }
 
   return (
@@ -276,90 +227,21 @@ export default function Home() {
               />
             </div>
 
-            {/* Template Selection */}
-            <div>
-              <div className="mb-3 block text-sm font-medium text-white flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Escolha um Template
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {templates.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setSelectedTemplate(t.id)}
-                    disabled={isGenerating}
-                    className={`p-3 rounded-lg border-2 transition-all text-left ${
-                      selectedTemplate === t.id
-                        ? "border-white bg-white/20"
-                        : "border-white/20 bg-white/5 hover:border-white/40"
-                    } disabled:opacity-50`}
-                  >
-                    <div className="font-medium text-white">{t.name}</div>
-                    <div className="text-xs text-white/70 mt-1">{t.description}</div>
-                    <div className="text-xs text-white/60 mt-2">
-                      {t.layoutCount} layouts disponíveis
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mix Layouts Toggle */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-              <input
-                id="mixLayouts"
-                type="checkbox"
-                checked={mixLayouts}
-                onChange={(e) => setMixLayouts(e.target.checked)}
-                disabled={isGenerating}
-                className="w-4 h-4 cursor-pointer"
-              />
-              <label htmlFor="mixLayouts" className="text-sm text-white cursor-pointer flex-1">
-                <div className="font-medium">Mesclar Layouts</div>
-                <div className="text-xs text-white/70">
-                  Alterna entre diferentes layouts para cada slide
-                </div>
-              </label>
-            </div>
-
-            <div>
-              <label htmlFor="slideCount" className="mb-2 block text-sm font-medium text-white">
-                Número de Slides: {slideCount}
-              </label>
-              <input
-                id="slideCount"
-                type="range"
-                min="3"
-                max="15"
-                value={slideCount}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSlideCount(Number(e.target.value))
-                }
-                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-secondary accent-primary"
-                disabled={isGenerating}
-              />
-              <div className="mt-1 flex justify-between text-xs text-white/80">
-                <span>3 slides</span>
-                <span>15 slides</span>
-              </div>
-            </div>
-
             <Button
-              onClick={handleGenerate}
-              disabled={!topic.trim() || isGenerating || templates.length === 0}
+              onClick={handleNext}
+              disabled={!topic.trim() || isGenerating}
               className="w-full py-6 text-lg"
               size="lg"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Gerando apresentação...
+                  Carregando...
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Gerar Apresentação
+                  Continuar
                 </>
               )}
             </Button>
@@ -381,8 +263,8 @@ export default function Home() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
               <Plus className="h-6 w-6 text-white" />
             </div>
-            <h3 className="mb-2 font-semibold text-white">Layouts Mesclados</h3>
-            <p className="text-sm text-white/90">Alterna automaticamente entre diferentes estilos</p>
+            <h3 className="mb-2 font-semibold text-white">Edição de Slides</h3>
+            <p className="text-sm text-white/90">Revise e edite os textos antes de finalizar</p>
           </div>
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
