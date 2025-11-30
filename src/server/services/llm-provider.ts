@@ -24,9 +24,14 @@ export function createModelFromProvider(provider: LlmProviderRecord): LanguageMo
       throw new Error("Configuração da Azure incompleta.")
     }
 
+    // Extrair o resource name da URL do endpoint
+    // Formato esperado: https://{resourceName}.openai.azure.com
+    const endpointUrl = new URL(provider.azureEndpoint)
+    const resourceName = endpointUrl.hostname.split(".")[0]
+
     const azure = createAzure({
       apiKey: provider.apiKey,
-      endpoint: provider.azureEndpoint,
+      resourceName: resourceName,
       apiVersion: provider.azureApiVersion ?? DEFAULT_AZURE_API_VERSION,
     })
 
