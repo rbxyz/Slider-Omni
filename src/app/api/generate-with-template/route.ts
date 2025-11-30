@@ -89,7 +89,22 @@ function generatePresentationWithTemplate(
   const slidesHtml = slides
     .map((slide, idx) => {
       // Selecionar layout: se mixLayouts ativado, alterna entre layouts; senão usa o primeiro
-      const layout = mixLayouts ? selectLayout(template, idx) : template.layouts[0]
+      let layout = mixLayouts ? selectLayout(template, idx) : template.layouts[0]
+
+      // Se o slide tem conteúdo, priorizar layouts que mostram conteúdo
+      if (slide.content && slide.content.length > 0) {
+        const contentLayouts = template.layouts.filter(
+          (l) => l.category !== "title-only" && l.category !== "title-image",
+        )
+        if (contentLayouts.length > 0 && mixLayouts) {
+          // Usar layout com conteúdo baseado no índice
+          const contentLayoutIndex = idx % contentLayouts.length
+          layout = contentLayouts[contentLayoutIndex] ?? layout
+        } else if (contentLayouts.length > 0) {
+          // Se não está misturando, usar o primeiro layout com conteúdo
+          layout = contentLayouts[0] ?? layout
+        }
+      }
 
       if (!layout) {
         throw new Error(`Layout não encontrado para o slide ${idx + 1}`)
@@ -98,6 +113,8 @@ function generatePresentationWithTemplate(
       console.log(
         `  Slide ${idx + 1}: Usando layout "${layout.name}" (categoria: ${layout.category})`,
       )
+      console.log(`    Título: "${slide.title}"`)
+      console.log(`    Conteúdo: ${slide.content.length} itens`)
 
       return renderSlideWithTemplate(slide.title, slide.content, layout, idx + 1)
     })

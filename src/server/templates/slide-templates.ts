@@ -38,7 +38,7 @@ export interface SlideTemplate {
         name: 'Title Centered',
         description: 'Título centralizado com destaque',
         category: 'title-only',
-        htmlStructure: (title: string) => `
+        htmlStructure: (title: string, content: string[], notes?: string) => `
           <div class="layout-title-centered">
             <div class="title-wrapper">
               <h1 class="slide-title">${title}</h1>
@@ -109,7 +109,7 @@ export interface SlideTemplate {
         name: 'Hero Title',
         description: 'Título em estilo herói com background gradiente',
         category: 'title-only',
-        htmlStructure: (title: string) => `
+        htmlStructure: (title: string, content: string[], notes?: string) => `
           <div class="layout-hero">
             <div class="hero-background"></div>
             <h1 class="hero-title">${title}</h1>
@@ -181,7 +181,7 @@ export interface SlideTemplate {
         name: 'Minimal Title',
         description: 'Título minimalista puro',
         category: 'title-only',
-        htmlStructure: (title: string) => `
+        htmlStructure: (title: string, content: string[], notes?: string) => `
           <div class="layout-minimal-title">
             <h1 class="minimal-title">${title}</h1>
             <div class="minimal-line"></div>
@@ -226,7 +226,7 @@ export interface SlideTemplate {
         name: 'Corporate Title',
         description: 'Título corporativo',
         category: 'title-only',
-        htmlStructure: (title: string) => `
+        htmlStructure: (title: string, content: string[], notes?: string) => `
           <div class="layout-corporate-title">
             <div class="corporate-header">
               <div class="header-bar"></div>
