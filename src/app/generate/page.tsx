@@ -154,7 +154,16 @@ export default function GeneratePage() {
 
   const updateSlide = (index: number, field: keyof SlideContent, value: string | string[]) => {
     const updated = [...slidesContent]
-    updated[index] = { ...updated[index], [field]: value }
+    const currentSlide = updated[index]
+    if (!currentSlide) return
+    
+    if (field === "title" && typeof value === "string") {
+      updated[index] = { ...currentSlide, title: value }
+    } else if (field === "content" && Array.isArray(value)) {
+      updated[index] = { ...currentSlide, content: value }
+    } else if (field === "notes" && typeof value === "string") {
+      updated[index] = { ...currentSlide, notes: value }
+    }
     setSlidesContent(updated)
   }
 
