@@ -671,8 +671,15 @@ export interface SlideTemplate {
   
   // Função para selecionar layout aleatório ou específico
   export function selectLayout(template: SlideTemplate, index: number): LayoutTemplate {
+    if (template.layouts.length === 0) {
+      throw new Error(`Template ${template.id} não possui layouts definidos`)
+    }
     const layoutIndex = index % template.layouts.length
-    return template.layouts[layoutIndex]
+    const layout = template.layouts[layoutIndex]
+    if (!layout) {
+      throw new Error(`Layout não encontrado no índice ${layoutIndex} para o template ${template.id}`)
+    }
+    return layout
   }
   
   // Função para renderizar slide com template
